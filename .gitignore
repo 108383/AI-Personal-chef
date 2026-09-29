@@ -1,9 +1,9 @@
-# Secrets and local configuration
+# 密钥和本地配置
 .env
 .env.*
 !.env.example
 
-# Python virtual environments and caches
+# Python 虚拟环境和缓存
 .venv/
 venv/
 env/
@@ -12,17 +12,17 @@ __pycache__/
 *.pyd
 *.egg-info/
 
-# IDE and OS files
+# IDE 配置和操作系统文件
 .idea/
 .vscode/
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Local LangGraph/runtime state
+# LangGraph 本地运行状态文件
 .langgraph_api/
 
-# Local databases and generated data
+# 本地数据库和运行生成的数据
 *.db
 *.sqlite
 *.sqlite3
@@ -31,14 +31,14 @@ desktop.ini
 data/
 uploads/
 
-# Logs and temporary files
+# 日志和临时文件
 *.log
 logs/
 tmp/
 temp/
 .cache/
 
-# Test/build artifacts
+# 测试和构建产物
 .pytest_cache/
 .coverage
 htmlcov/

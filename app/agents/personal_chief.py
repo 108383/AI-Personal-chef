@@ -20,8 +20,8 @@ search_tool = TavilySearch(
 
 # 3. 初始化多模态模型
 model = init_chat_model(
-    model = "qwen3.7-plus", #模型名称
-    model_provider="openai", #指定模型提供者,使用国内大部分都兼容的openai
+    model=os.getenv("MODEL_NAME", "qwen3.5-plus"),
+    model_provider=os.getenv("MODEL_PROVIDER", "openai"),
     base_url = os.getenv("DASHSCOPE_BASE_URL"),
     api_key = os.getenv("DASHSCOPE_API_KEY")
 )
