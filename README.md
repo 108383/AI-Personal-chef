@@ -1,123 +1,48 @@
-# 智能私厨
+# AI 私厨
 
-一个基于 FastAPI、LangChain 和 LangGraph 的智能食谱助手。用户可以输入食材清单，或上传食材图片，由智能体搜索并整理适合的菜谱建议。
+基于 React、FastAPI 与 LangGraph 的多模态智能食谱助手。支持文字食材、OSS 图片上传、联网菜谱检索、营养与难度评估、流式回答、服务器端会话历史查看和确认删除。
 
-## 这个项目能做什么
+## 本地启动
 
-- 根据文字或图片中的食材生成菜谱建议
-- 使用 Tavily 搜索网络菜谱
-- 使用 LangGraph SQLite checkpointer 保存会话历史
-- 通过 FastAPI 提供流式对话接口
-- 使用阿里云 OSS 生成图片上传签名 URL
-- 内置前端静态资源，可由 FastAPI 直接提供访问
-
-## 环境要求
-
-- Python 3.13 或更高版本
-- [uv](https://docs.astral.sh/uv/) 包管理器
-- 一个提供 OpenAI 兼容接口的大模型服务
-- Tavily API Key（联网搜索需要）
-- 阿里云 OSS 配置（上传图片时需要）
-
-## 下载和安装
+需要 Python 3.13+、Node.js 18+。先复制 `.env.example` 为 `.env`，配置模型、Tavily 与 OSS。OSS Bucket 需要允许你的前端域名进行 PUT 上传。
 
 ```bash
-git clone <你的 GitHub 仓库地址>
-cd 智能私厨
 uv sync
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8001
 ```
 
-复制环境变量模板：
-
-Windows PowerShell：
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Linux/macOS：
+另开终端：
 
 ```bash
-cp .env.example .env
+cd frontend
+npm ci
+npm run dev
 ```
 
-然后打开 `.env`，按照里面的中文注释填写 API Key 和其他配置。
+打开 Vite 输出的地址（默认 http://127.0.0.1:5173）。开发服务自动代理 `/api` 到端口 8001。
 
-## 大模型配置
-
-项目通过 OpenAI 兼容协议调用大模型，默认配置为阿里云百炼的 Qwen 模型。可以使用以下类型的模型：
-
-| 服务商 | `MODEL_NAME` 示例 | `DASHSCOPE_BASE_URL` 示例 |
-| --- | --- | --- |
-| 阿里云百炼 | `qwen3.5-plus`、`qwen3-max`、`qwen-turbo` | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
-| DeepSeek | `deepseek-chat`、`deepseek-reasoner` | `https://api.deepseek.com/v1` |
-| OpenAI | `gpt-4o-mini`、`gpt-4.1-mini` | `https://api.openai.com/v1` |
-
-不同服务商要使用各自的 API Key。只需要修改 `.env` 中的 `MODEL_NAME`、`DASHSCOPE_BASE_URL` 和 `DASHSCOPE_API_KEY`；代码会通过兼容协议调用它们。模型名称必须以服务商实际提供的名称为准。
-
-## 启动项目
+## 单服务部署
 
 ```bash
-uv run uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
+cd frontend
+npm ci
+npm run build
+cd ..
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8001
 ```
 
-浏览器访问：
+构建后 FastAPI 直接托管 React 页面。`frontend/dist` 是本地生成的构建产物，不上传；源码和锁文件在仓库中。
 
-- 前端：<http://127.0.0.1:8001>
-- 接口文档：<http://127.0.0.1:8001/docs>
+## 接口
 
-如需使用 LangGraph 开发调试服务：
+- POST `/api/v1/chat/stream`：UTF-8 文本流，提交 message、image_url、thread_id。
+- GET `/api/v1/chat/sessions`：读取持久化会话列表。
+- GET `/api/v1/chat/messages?thread_id=...`：恢复消息（含图片）。
+- DELETE `/api/v1/chat/messages?thread_id=...`：永久删除该会话的全部 checkpoint 与 writes。
+- GET `/api/v1/oss/presign?filename=...`：获取图片上传签名。
 
-```bash
-uv run langgraph dev
-```
+## 数据与安全
 
-## 主要接口
+旧 `app/static` 页面只在本地保留，不再提供服务、不加入 Git。`.env`、数据库、会话历史、日志、缓存、依赖和 IDE 文件均不上传。
 
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| POST | `/api/v1/chat/stream` | 流式发送食材和问题 |
-| GET | `/api/v1/chat/messages?thread_id=...` | 获取会话历史 |
-| DELETE | `/api/v1/chat/messages?thread_id=...` | 清空会话历史 |
-| GET | `/api/v1/oss/presign?filename=...` | 获取 OSS 上传签名 |
-
-## `.gitignore` 是什么
-
-`.gitignore` 是 Git 的“忽略清单”。它告诉 Git 哪些文件不要加入版本控制，例如 `.env` 中的 API Key、`.venv` 虚拟环境、`.idea` 个人配置、SQLite 数据库、日志和缓存。
-
-它不会删除这些文件，也不会影响程序读取它们；它只会让 `git add .` 时跳过这些文件。项目源码、`pyproject.toml`、`uv.lock`、`README.md` 和 `.env.example` 仍然会正常上传。
-
-## 项目结构
-
-```text
-app/
-├── agents/       # LangGraph 智能体和模型调用
-├── api/          # FastAPI 路由
-├── common/       # 日志等公共模块
-├── db/           # 本地 SQLite 数据库目录（运行时自动生成）
-├── models/       # 请求/响应模型
-├── static/       # 前端静态资源
-└── main.py       # FastAPI 应用入口
-```
-
-## 上传到 GitHub
-
-```bash
-git status --short
-git add .
-git status
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin <你的 GitHub 仓库地址>
-git push -u origin main
-```
-
-执行 `git status` 时不应该看到 `.env`、`.venv`、`.idea` 或 `.db` 文件。
-
-## 安全提醒
-
-不要在代码、README、截图或 Git 提交中写入 API Key、OSS 密钥、数据库密码和真实用户数据。如果密钥曾经提交到公开仓库，应立即在对应服务商后台撤销并重新生成。
-
-## 许可证
-
-暂未指定许可证。如需公开他人使用，请根据你的授权需求补充 LICENSE 文件。
+删除会话不等于删除 OSS 中的已上传图片。停止生成会中止浏览器读取，但服务器可能仍在完成当前模型调用。请勿对无身份认证的本项目直接开放公共服务：部署前应增加登录、会话归属校验、限流、上传限制与 HTTPS。当前为单用户作品演示。

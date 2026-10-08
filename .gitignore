@@ -44,3 +44,10 @@ temp/
 htmlcov/
 dist/
 build/
+
+# React dependencies, old page retained only locally
+node_modules/
+frontend/dist/
+app/static/
+streamlit.py
+history/

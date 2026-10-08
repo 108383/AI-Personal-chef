@@ -60,7 +60,7 @@ agent = create_agent(
 #直接用langgraph调用,可以在网页调试,终端: uv run langgraph dev
 #---------------------------------------------------------
 # 流式对话
-async def sreach_recipes(prompt:str ,image:str ,thread_id: str):
+def sreach_recipes(prompt:str ,image:str ,thread_id: str):
     """调用agent搜索食谱"""
     logger.info(f"[用户]:{prompt},image:{image},thread_id: {thread_id}")
     try:
@@ -124,3 +124,19 @@ def get_messages(thread_id:str) -> list[dict[str,str]]:
             result.append({"role": "assistant", "content": msg.content})
 
     return result
+
+
+def list_sessions():
+    with checkpointer.cursor(transaction=False) as cursor:
+        ids = [row[0] for row in cursor.execute("SELECT DISTINCT thread_id FROM checkpoints").fetchall()]
+    result = []
+    for thread_id in ids:
+        checkpoint = checkpointer.get({"configurable": {"thread_id": thread_id}})
+        if not checkpoint:
+            continue
+        human = next((m for m in checkpoint.get("channel_values", {}).get("messages", []) if isinstance(m, HumanMessage)), None)
+        if human is None:
+            continue
+        title = human.content if isinstance(human.content, str) else " ".join(b.get("text", "") for b in human.content if isinstance(b, dict))
+        result.append({"thread_id": thread_id, "title": title[:32] or "图片食材咨询", "updated_at": checkpoint.get("ts", "")})
+    return sorted(result, key=lambda s: s["updated_at"], reverse=True)

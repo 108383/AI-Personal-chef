@@ -1,0 +1,1 @@
+{"name":"ai-chef-web","private":true,"version":"1.0.0","type":"module","scripts":{"dev":"vite --host 127.0.0.1","build":"vite build"},"dependencies":{"react":"^19.1.0","react-dom":"^19.1.0","react-markdown":"^10.1.0","remark-gfm":"^4.0.1","lucide-react":"^0.468.0"},"devDependencies":{"vite":"^6.3.5","@vitejs/plugin-react":"^4.4.1"}}

@@ -32,7 +32,7 @@ app.include_router(chat.router, prefix="/api/v1", tags=["对话"])
 app.include_router(oss.router, prefix="/api/v1", tags=["申请上传签名url"])
 
 # 3.挂载前端资源
-static_dir = os.path.join(os.path.dirname(__file__), "static")
+static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
 if os.path.exists(static_dir):
     app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
 
