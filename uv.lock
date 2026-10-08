@@ -2271,7 +2271,7 @@ wheels = [
 [[package]]
 name = "py-project02"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "alibabacloud-oss-v2" },
     { name = "fastapi" },
